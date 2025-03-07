@@ -1,0 +1,8 @@
+.cpcache
+.nrepl-*
+.cljs_node_repl
+.dir-locals.el
+
+/target
+/out
+/conf

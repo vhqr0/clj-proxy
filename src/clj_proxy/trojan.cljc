@@ -24,12 +24,13 @@
 ;;;; client
 
 (defn ->client
+  "Construct trojan client side handshake state."
   [opts]
   (let [{:keys [addr auth]} opts]
     {:stage :req :addr addr :auth auth :buffer (b/empty)}))
 
 (defmulti client-advance
-  "DOC"
+  "Advance trojan client side state."
   (fn [state] (:stage state)))
 
 (defmethod client-advance :req [state]
@@ -42,13 +43,13 @@
 ;;;; server
 
 (defn ->server
-  "DOC"
+  "Construct trojan server side handshake state."
   [opts]
   (let [{:keys [auths]} opts]
     {:stage :wait-req :auths auths :buffer (b/empty)}))
 
 (defmulti server-advance
-  "DOC"
+  "Advance trojan server side state."
   (fn [state] (:stage state)))
 
 (defmethod server-advance :wait-req [state]

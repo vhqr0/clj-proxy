@@ -162,7 +162,7 @@
       (some? auth) (assoc :auth auth))))
 
 (defmulti client-advance
-  "DOC"
+  "Advance socks5 client side state."
   (fn [state] (:stage state)))
 
 (defmethod client-advance :auth-req [state]
@@ -254,8 +254,7 @@
       (some? auths) (assoc :auths auths))))
 
 (defmulti server-advance
-  "Advance socks5 server side handshake state, return bytes to send (or
-  nil if advance completed) and new state."
+  "Advance socks5 server side state."
   (fn [state] (:stage state)))
 
 (defmethod server-advance :wait-auth-req [state]

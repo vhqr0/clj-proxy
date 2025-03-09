@@ -76,28 +76,28 @@
 
 (defn tcp-start-server
   "Start TCP server."
-  [handler opts]
-  (-> (fn [s _info] (-> s ms->ch-pair handler))
+  [handle-fn opts]
+  (-> (fn [s _info] (-> s ms->ch-pair handle-fn))
       (tcp/start-server opts)))
 
 (defn ws-start-server
   "Start WS server."
-  [handler opts]
+  [handle-fn opts]
   (-> (fn [req]
         (let [s @(http/websocket-connection req)]
-          (-> s ms->ch-pair handler)))
+          (-> s ms->ch-pair handle-fn)))
       (http/start-server opts)))
 
-(defmethod core/net-start-server :tcp [handler opts]
+(defmethod core/net-start-server :tcp [handle-fn opts]
   (let [{:keys [port tls-context]} opts
         tcp-opts (cond-> {:port port}
                    (some? tls-context) (assoc :ssl-context tls-context))]
     (a/thread
-      (tcp-start-server handler tcp-opts))))
+      (tcp-start-server handle-fn tcp-opts))))
 
-(defmethod core/net-start-server :ws [handler opts]
+(defmethod core/net-start-server :ws [handle-fn opts]
   (let [{:keys [port tls-context]} opts
         ws-opts (cond-> {:port port}
                   (some? tls-context) (assoc :ssl-context tls-context))]
     (a/thread
-      (ws-start-server handler ws-opts))))
+      (ws-start-server handle-fn ws-opts))))

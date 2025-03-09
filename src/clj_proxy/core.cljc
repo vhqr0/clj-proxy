@@ -1,5 +1,6 @@
 (ns clj-proxy.core
-  (:require [clojure.core.async :as a]
+  (:require [clojure.string :as str]
+            [clojure.core.async :as a]
             [clj-bytes.core :as b]))
 
 (defn log
@@ -81,6 +82,8 @@
 
 ;;; server
 
+;;;; connect
+
 (defmulti connect
   "Proxy connect."
   (fn [_context opts] (:type opts)))
@@ -103,6 +106,35 @@
 
 (defmethod connect :block [context {:keys [name]}]
   (log context {:type :connect :via name}))
+
+(defmethod connect :rand-dispatch [context {:keys [name sub-opts]}]
+  (log context {:level :debug :type :dispatch :via name})
+  (connect context (rand-nth sub-opts)))
+
+(defn match-tag
+  "Match host's tag in tag-map."
+  [host tag-map]
+  (when (not (str/blank? host))
+    (if-let [tag (get tag-map host)]
+      tag
+      (when-let [host (second (str/split host #"\." 2))]
+        (recur host tag-map)))))
+
+^:rct/test
+(comment
+  (match-tag "google.com" {"google.com" :proxy}) ; => :proxy
+  (match-tag "www.google.com" {"google.com" :proxy}) ; => :proxy
+  (match-tag "www.a.google.com" {"google.com" :proxy}) ; => :proxy
+  (match-tag "ads.google.com" {"google.com" :proxy "ads.google.com" :block}) ; => :block
+  (match-tag "baidu.com" {"google.com" :proxy}) ; => nil
+  )
+
+(defmethod connect :tag-dispatch [{:keys [addr] :as context} {:keys [name tag-map default-tag sub-opts]}]
+  (log context {:level :debug :type :dispatch :via name})
+  (let [tag (or (match-tag (first addr) tag-map) default-tag)]
+    (connect context (get sub-opts tag))))
+
+;;;; handle
 
 (defn pipe
   "Proxy pipe."

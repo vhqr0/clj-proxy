@@ -1,0 +1,3 @@
+#kaocha/v1
+ {:plugins [:kaocha.plugin/notifier
+            :kaocha.plugin/cloverage]}

@@ -1,6 +1,7 @@
 (ns clj-proxy.server-test
   (:require [clojure.core.async :as a]
             [clj-proxy.core :as core]
+            clj-proxy.net
             clj-proxy.socks5
             clj-proxy.trojan)
   (:import [java.util Date]))

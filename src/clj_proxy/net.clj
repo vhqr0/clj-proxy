@@ -62,7 +62,7 @@
     (tcp-connect tcp-opts)))
 
 (defmethod core/net-connect :ws [opts]
-  (let [{:keys [addr http-path http-host tls? tls-context]} opts
+  (let [{:keys [addr http-path http-host tls? tls-context] :or {http-path "/"}} opts
         [host port] addr
         scheme (if tls? "wss" "ws")
         uri (str (URI. scheme nil host port http-path nil nil))

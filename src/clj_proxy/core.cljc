@@ -64,7 +64,7 @@
   "Proxy handshake on server."
   [server context addr opts]
   (a/go
-    (let [state (->proxy-client addr opts)]
+    (let [state (->proxy-client addr (assoc opts :log-fn (partial log context)))]
       (if-let [{:keys [buffer server-xf server-info]} (a/<! (handshake server context state))]
         (let [server (cond-> server (some? server-xf) server-xf)]
           {:buffer buffer :server server :server-info server-info})
@@ -74,7 +74,7 @@
   "Proxy handshake on client."
   [client context opts]
   (a/go
-    (let [state (->proxy-server opts)]
+    (let [state (->proxy-server (assoc opts :log-fn (partial log context)))]
       (if-let [{:keys [addr buffer client-xf client-info]} (a/<! (handshake client context state))]
         (let [client (cond-> client (some? client-xf) client-xf)]
           {:addr addr :buffer buffer :client client :client-info client-info})

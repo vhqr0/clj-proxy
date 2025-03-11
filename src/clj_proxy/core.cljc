@@ -60,13 +60,30 @@
             (recur (hs-update state b))
             (log context {:level :error :type :handshake-error :reason :handshake/read})))))))
 
+(defn ch-ex-handle
+  "Handle exception in chan."
+  [ex context]
+  (let [msg (ex-message ex)
+        data (ex-data ex)]
+    (log context {:level :error :type :pipe-error :reason :pipe/xform :msg msg :data data})))
+
+(defn wrap-xf-pair
+  "Wrap lower connetion by xf-pair."
+  [[ich och] [ixf oxf] context]
+  (let [exh #(ch-ex-handle % context)
+        nich (a/chan 1024 ixf exh)
+        noch (a/chan 1024 oxf exh)]
+    (a/pipe ich nich)
+    (a/pipe noch och)
+    [nich noch]))
+
 (defn proxy-client
   "Proxy handshake on server."
   [server context addr opts]
   (a/go
-    (let [state (->proxy-client addr (assoc opts :log-fn (partial log context)))]
-      (if-let [{:keys [buffer server-xf server-info]} (a/<! (handshake server context state))]
-        (let [server (cond-> server (some? server-xf) server-xf)]
+    (let [state (->proxy-client addr opts)]
+      (if-let [{:keys [buffer server-xf-pair server-info]} (a/<! (handshake server context state))]
+        (let [server (cond-> server (some? server-xf-pair) (wrap-xf-pair server-xf-pair context))]
           {:buffer buffer :server server :server-info server-info})
         (log context {:level :error :type :handshake-error :reason :client/handshake})))))
 
@@ -74,9 +91,9 @@
   "Proxy handshake on client."
   [client context opts]
   (a/go
-    (let [state (->proxy-server (assoc opts :log-fn (partial log context)))]
-      (if-let [{:keys [addr buffer client-xf client-info]} (a/<! (handshake client context state))]
-        (let [client (cond-> client (some? client-xf) client-xf)]
+    (let [state (->proxy-server opts)]
+      (if-let [{:keys [addr buffer client-xf-pair client-info]} (a/<! (handshake client context state))]
+        (let [client (cond-> client (some? client-xf-pair) (wrap-xf-pair client-xf-pair context))]
           {:addr addr :buffer buffer :client client :client-info client-info})
         (log context {:level :error :type :handshake-error :reason :server/handshake})))))
 

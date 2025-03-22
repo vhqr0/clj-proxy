@@ -1,6 +1,7 @@
 (ns clj-proxy.socks5
   (:require [clj-bytes.core :as b]
             [clj-bytes.struct :as st]
+            [clj-net.inet.addr :as ia]
             [clj-proxy.core :as core]))
 
 ;; socks5: https://www.rfc-editor.org/rfc/rfc1928
@@ -44,9 +45,10 @@
 
 (defn atype->st-host
   [atype]
-  ;; TODO add ipv4/6 support
   (case atype
-    :domain st-domain-host))
+    :domain st-domain-host
+    :ipv4 ia/st-ipv4
+    :ipv6 ia/st-ipv6))
 
 (def st-addr
   (-> (st/key-fns

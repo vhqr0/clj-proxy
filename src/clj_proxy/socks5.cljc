@@ -41,12 +41,10 @@
 (def st-atype
   (st/enum st/uint8 atype->int))
 
-(def st-domain-host st-str)
-
 (defn atype->st-host
   [atype]
   (case atype
-    :domain st-domain-host
+    :domain st-str
     :ipv4 ia/st-ipv4
     :ipv6 ia/st-ipv6))
 

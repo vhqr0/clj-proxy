@@ -24,22 +24,22 @@
 (def st-rsv
   (-> st/uint8 (st/wrap-validator #(= % 0))))
 
-(def ver->int
-  {:socks5 5})
+(def ver-map
+  (st/->kimap {:socks5 5}))
 
 (def st-ver
-  (st/enum st/uint8 ver->int))
+  (st/enum st/uint8 ver-map))
 
 ;;;; request
 
-(def atype->int
+(def atype-map
   ;; - IP V4 address: X'01'
   ;; - DOMAINNAME: X'03'
   ;; - IP V6 address: X'04'
-  {:domain 3 :ipv4 1 :ipv6 4})
+  (st/->kimap {:domain 3 :ipv4 1 :ipv6 4}))
 
 (def st-atype
-  (st/enum st/uint8 atype->int))
+  (st/enum st/uint8 atype-map))
 
 (defn atype->st-host
   [atype]
@@ -57,16 +57,16 @@
        (fn [[host port]] {:atype :domain :host host :port port})
        (juxt :host :port))))
 
-(def cmd->int
+(def cmd-map
   ;; - CONNECT X'01'
   ;; - BIND X'02'
   ;; - UDP ASSOCIATE X'03'
-  {:connect 1 :bind 2 :udp-assoc 3})
+  (st/->kimap {:connect 1 :bind 2 :udp-assoc 3}))
 
 (def st-cmd
-  (st/enum st/uint8 cmd->int))
+  (st/enum st/uint8 cmd-map))
 
-(def status->int
+(def status-map
   ;; - X'00' succeeded
   ;; - X'01' general SOCKS server failure
   ;; - X'02' connection not allowed by ruleset
@@ -77,18 +77,19 @@
   ;; - X'07' Command not supported
   ;; - X'08' Address type not supported
   ;; - X'09' to X'FF' unassigned
-  {:ok                  0
-   :error               1
-   :not-allowed         2
-   :net-unreach         3
-   :host-unreach        4
-   :conn-refused        5
-   :ttl-expired         6
-   :cmd-not-supported   7
-   :atype-not-supported 8})
+  (st/->kimap
+   {:ok                  0
+    :error               1
+    :not-allowed         2
+    :net-unreach         3
+    :host-unreach        4
+    :conn-refused        5
+    :ttl-expired         6
+    :cmd-not-supported   7
+    :atype-not-supported 8}))
 
 (def st-status
-  (st/enum st/uint8 status->int))
+  (st/enum st/uint8 status-map))
 
 (def st-req
   (st/keys
@@ -106,23 +107,23 @@
 
 ;;;; auth
 
-(def auth-meth->int
+(def auth-meth-map
   ;; - X'00' NO AUTHENTICATION REQUIRED
   ;; - X'01' GSSAPI
   ;; - X'02' USERNAME/PASSWORD
   ;; - X'03' to X'7F' IANA ASSIGNED
   ;; - X'80' to X'FE' RESERVED FOR PRIVATE METHODS
   ;; - X'FF' NO ACCEPTABLE METHODS
-  {:no-auth 0 :gssapi 1 :pwd 2 :no-accept 0xff})
+  (st/->kimap {:no-auth 0 :gssapi 1 :pwd 2 :no-accept 0xff}))
 
 (def st-auth-meth
-  (st/enum st/uint8 auth-meth->int))
+  (st/enum st/uint8 auth-meth-map))
 
-(def pwd-auth-status->int
-  {:ok 0 :error 1})
+(def pwd-auth-status-map
+  (st/->kimap {:ok 0 :error 1}))
 
 (def st-pwd-auth-status
-  (st/enum st/uint8 pwd-auth-status->int))
+  (st/enum st/uint8 pwd-auth-status-map))
 
 (def st-auth-meths
   (-> (st/bytes-var st/uint8)

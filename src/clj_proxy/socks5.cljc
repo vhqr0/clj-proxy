@@ -49,10 +49,10 @@
     :ipv6 ia/st-ipv6))
 
 (def st-addr
-  (-> (st/key-fns
-       :atype (constantly st-atype)
-       :host (fn [{:keys [atype]}] (atype->st-host atype))
-       :port (constantly st/uint16-be))
+  (-> (st/keys
+       :atype st-atype
+       :host (st/lazy (comp atype->st-host :atype))
+       :port st/uint16-be)
       (st/wrap
        (fn [[host port]] {:atype :domain :host host :port port})
        (juxt :host :port))))
